@@ -1,11 +1,59 @@
-# Ignore Node.js modules folder
-node_modules
 
-# Ignore database file
-db.json
-
-# Ignore environment variables file
-.env
-
-
-    
+{
+  "videos": [
+    {
+      "id": 1,
+      "title_key": "Letecké zábery lesa",
+      "views_key": "78k videní • pred 3 dňami",
+      "channel": "NatureLover",
+      "subs_key": "150k odberateľov",
+      "desc_key": "Krátke video zachytávajúce krásu lesa z vtáčej perspektívy.",
+      "video_src": "https://assets.mixkit.co/videos/preview/mixkit-a-drone-flying-over-the-forest-4993-large.mp4",
+      "poster_src": "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      "thumbnail_src": "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg?auto=compress&cs=tinysrgb&w=168&h=94&dpr=1",
+      "avatar_src": "https://i.pravatar.cc/48?u=naturelover"
+    },
+    {
+      "id": 2,
+      "title_key": "Pokojná rieka v horách",
+      "views_key": "1.1M videní • pred 2 týždňami",
+      "channel": "MountainStream",
+      "subs_key": "320k odberateľov",
+      "desc_key": "Relaxačné zábery na horskú rieku a okolitú prírodu.",
+      "video_src": "https://assets.mixkit.co/videos/preview/mixkit-calm-river-in-the-mountains-4367-large.mp4",
+      "poster_src": "https://images.pexels.com/photos/440731/pexels-photo-440731.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      "thumbnail_src": "https://images.pexels.com/photos/440731/pexels-photo-440731.jpeg?auto=compress&cs=tinysrgb&w=168&h=94&dpr=1",
+      "avatar_src": "https://i.pravatar.cc/48?u=mountainstream"
+    },
+    {
+      "id": 3,
+      "title_key": "Západ slnka na pláži",
+      "views_key": "2.5M videní • pred 1 mesiacom",
+      "channel": "BeachVibes",
+      "subs_key": "800k odberateľov",
+      "desc_key": "Nádherný časozber západu slnka nad oceánom.",
+      "video_src": "https://assets.mixkit.co/videos/preview/mixkit-sunset-over-a-beach-1144-large.mp4",
+      "poster_src": "https://images.pexels.com/photos/1430677/pexels-photo-1430677.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      "thumbnail_src": "https://images.pexels.com/photos/1430677/pexels-photo-1430677.jpeg?auto=compress&cs=tinysrgb&w=168&h=94&dpr=1",
+      "avatar_src": "https://i.pravatar.cc/48?u=beachvibes"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "videoId": 1,
+      "user": "Jana Nováková",
+      "avatar": "https://i.pravatar.cc/40?u=JanaNovakova",
+      "text": "Úžasné zábery! Presne takéto videá milujem.",
+      "timestamp": "2025-08-03T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "videoId": 2,
+      "user": "Peter Cestovateľ",
+      "avatar": "https://i.pravatar.cc/40?u=PeterCestovatel",
+      "text": "Skvelá práca s kamerou a strihom. Akú techniku ste použili?",
+      "timestamp": "2025-08-04T05:30:00Z"
+    }
+  ]
+}
