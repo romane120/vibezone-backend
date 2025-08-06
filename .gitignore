@@ -1,0 +1,11 @@
+# Ignore Node.js modules folder
+node_modules
+
+# Ignore database file
+db.json
+
+# Ignore environment variables file
+.env
+
+
+    
