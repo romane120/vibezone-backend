@@ -6,148 +6,107 @@ const path = require('path');
 
 // Initialize Express app
 const app = express();
-const PORT = 3000; // Port the server will run on
-const ADMIN_SECRET_KEY = 'mysecretkey'; // Secret key for admin access
+const PORT = process.env.PORT || 3000;
+const ADMIN_SECRET_KEY = 'mysecretkey';
 
 // Middleware
-app.use(cors()); // Allows communication between frontend and backend
-app.use(express.json()); // Allows the server to receive data in JSON format
+app.use(cors());
+app.use(express.json());
 
 const dbPath = path.join(__dirname, 'db.json');
 
-// Helper functions for DB operations
+// --- Database Initialization ---
+function initializeDatabase() {
+  if (!fs.existsSync(dbPath)) {
+    console.log('db.json not found. Creating it with default data...');
+    const defaultDb = {
+      videos: [
+        {
+          "id": 1, "title_key": "Aerial Forest Shots", "views_key": "78k views • 3 days ago", "channel": "NatureLover", "subs_key": "150k subscribers", "desc_key": "A short video capturing the beauty of the forest from a bird's eye view.",
+          "video_src": "https://assets.mixkit.co/videos/preview/mixkit-a-drone-flying-over-the-forest-4993-large.mp4",
+          "poster_src": "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+          "thumbnail_src": "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg?auto=compress&cs=tinysrgb&w=168&h=94&dpr=1",
+          "avatar_src": "https://i.pravatar.cc/48?u=naturelover"
+        },
+        {
+          "id": 2, "title_key": "Calm River in the Mountains", "views_key": "1.1M views • 2 weeks ago", "channel": "MountainStream", "subs_key": "320k subscribers", "desc_key": "Relaxing footage of a mountain river and surrounding nature.",
+          "video_src": "https://assets.mixkit.co/videos/preview/mixkit-calm-river-in-the-mountains-4367-large.mp4",
+          "poster_src": "https://images.pexels.com/photos/440731/pexels-photo-440731.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+          "thumbnail_src": "https://images.pexels.com/photos/440731/pexels-photo-440731.jpeg?auto=compress&cs=tinysrgb&w=168&h=94&dpr=1",
+          "avatar_src": "https://i.pravatar.cc/48?u=mountainstream"
+        }
+      ],
+      comments: [
+        { "id": 1, "videoId": 1, "user": "Jane Doe", "avatar": "https://i.pravatar.cc/40?u=JaneDoe", "text": "Amazing shots!", "timestamp": "2025-08-03T10:00:00Z" }
+      ]
+    };
+    fs.writeFileSync(dbPath, JSON.stringify(defaultDb, null, 2));
+    console.log('db.json created successfully.');
+  } else {
+    console.log('db.json already exists.');
+  }
+}
+
+// Helper functions
 const readDb = () => JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
 const writeDb = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 
-// Middleware for admin authentication
+// Admin Auth Middleware
 const adminAuth = (req, res, next) => {
-  if (req.headers['x-admin-secret'] === ADMIN_SECRET_KEY) {
-    next(); // Key is correct, proceed
-  } else {
-    res.status(403).json({ message: 'Forbidden: Admin access only' });
-  }
+  if (req.headers['x-admin-secret'] === ADMIN_SECRET_KEY) next();
+  else res.status(403).json({ message: 'Forbidden: Admin access only' });
 };
 
-
-// --- Public API Endpoints ---
-
-// Get all videos
+// --- API Endpoints ---
 app.get('/api/videos', (req, res) => {
-  try {
-    res.json(readDb().videos);
-  } catch (error) {
-    res.status(500).json({ message: "Error reading videos data" });
-  }
+  try { res.json(readDb().videos); } catch (e) { res.status(500).json({ message: "Error reading videos", error: e.message }); }
 });
 
-// Get comments for a specific video
 app.get('/api/videos/:videoId/comments', (req, res) => {
   try {
-    const db = readDb();
     const videoId = parseInt(req.params.videoId, 10);
-    res.json(db.comments.filter(c => c.videoId === videoId));
-  } catch (error) {
-    res.status(500).json({ message: "Error reading comments data" });
-  }
+    res.json(readDb().comments.filter(c => c.videoId === videoId));
+  } catch (e) { res.status(500).json({ message: "Error reading comments", error: e.message }); }
 });
 
-// Add a new comment
 app.post('/api/videos/:videoId/comments', (req, res) => {
   try {
     const db = readDb();
     const videoId = parseInt(req.params.videoId, 10);
     const { user, text } = req.body;
-
-    if (!user || !text) {
-      return res.status(400).json({ message: "User and text are required." });
-    }
-
+    if (!user || !text) return res.status(400).json({ message: "User and text are required." });
     const newComment = {
-      id: db.comments.length > 0 ? Math.max(...db.comments.map(c => c.id)) + 1 : 1,
-      videoId: videoId,
-      user: user,
+      id: db.comments.length > 0 ? Math.max(...db.comments.map(c => c.id)) + 1 : 1, videoId, user, text,
       avatar: `https://i.pravatar.cc/40?u=${user.replace(/\s+/g, '')}`,
-      text: text,
       timestamp: new Date().toISOString()
     };
-
     db.comments.push(newComment);
     writeDb(db);
     res.status(201).json(newComment);
-  } catch (error) {
-    res.status(500).json({ message: "Error saving comment" });
-  }
+  } catch (e) { res.status(500).json({ message: "Error saving comment", error: e.message }); }
 });
 
-
-// --- Admin API Endpoints (protected) ---
-
-// Get all comments (for admin)
-app.get('/api/admin/comments', adminAuth, (req, res) => {
-    try {
-        res.json(readDb().comments);
-    } catch (error) {
-        res.status(500).json({ message: "Error reading comments data" });
-    }
-});
-
-// Get statistics (for admin)
+// Admin routes...
 app.get('/api/admin/stats', adminAuth, (req, res) => {
     try {
         const db = readDb();
-        res.json({
-            videoCount: db.videos.length,
-            commentCount: db.comments.length
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error reading stats" });
-    }
+        res.json({ videoCount: db.videos.length, commentCount: db.comments.length });
+    } catch (e) { res.status(500).json({ message: "Error reading stats" }); }
 });
 
-// Delete a video (for admin)
 app.delete('/api/admin/videos/:videoId', adminAuth, (req, res) => {
     try {
         const db = readDb();
         const videoId = parseInt(req.params.videoId, 10);
-        
-        const videosFiltered = db.videos.filter(v => v.id !== videoId);
-        if (videosFiltered.length === db.videos.length) {
-            return res.status(404).json({ message: 'Video not found' });
-        }
-        db.videos = videosFiltered;
-
+        db.videos = db.videos.filter(v => v.id !== videoId);
         db.comments = db.comments.filter(c => c.videoId !== videoId);
-
         writeDb(db);
-        res.status(200).json({ message: 'Video and associated comments deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: "Error deleting video" });
-    }
+        res.status(200).json({ message: 'Video deleted' });
+    } catch (e) { res.status(500).json({ message: "Error deleting video" }); }
 });
 
-// Delete a comment (for admin)
-app.delete('/api/admin/comments/:commentId', adminAuth, (req, res) => {
-    try {
-        const db = readDb();
-        const commentId = parseInt(req.params.commentId, 10);
-        
-        const commentsFiltered = db.comments.filter(c => c.id !== commentId);
-        if (commentsFiltered.length === db.comments.length) {
-            return res.status(404).json({ message: 'Comment not found' });
-        }
-        db.comments = commentsFiltered;
-        
-        writeDb(db);
-        res.status(200).json({ message: 'Comment deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: "Error deleting comment" });
-    }
-});
-
-
-// Start the server
+// Start server
 app.listen(PORT, () => {
-  console.log(`Backend server is running on http://localhost:${PORT}`);
+  initializeDatabase();
+  console.log(`Backend server is running on port ${PORT}`);
 });
-
-
